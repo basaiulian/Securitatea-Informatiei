@@ -1,7 +1,7 @@
-# Python TCP Client A
+import pickle
 import sys
 import socket
-import json
+from MyCrypto import MyCrypto
 
 
 def my_print(*args, **kwargs):
@@ -21,12 +21,13 @@ def main():
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = ('localhost', 8000)
+
     my_print('[Client] Connecting to %s port %s' % server_address)
     sock.connect(server_address)
 
     operating_mode = "-"
-    k3 = '1234567887654321'
-    iv_k3 = b'3109104011810292'
+    k3 = '3112938275822331'
+    iv_k3 = b'8190271284791861'
     choice = ""
     choices = ["0", "1"]
     while choice not in choices:
@@ -40,23 +41,33 @@ def main():
 
     sock.sendall(choice.encode())
 
-    json_k1_iv = sock.recv(1024)
+    received = sock.recv(1024)
 
-    recv_k1 = json.loads(json_k1_iv)["k1"]
-    recv_iv = json.loads(json_k1_iv)["iv"]
+    received_data = pickle.loads(received)
+    received_k1 = received_data[1]
+    received_iv_k1 = received_data[2]
 
-    # decriptare recv_k1 folosind k3
-    # decriptare recv_iv folosind k3
+    k1_decrypted, iv_k1_decrypted = '', ''
 
-    my_print("\nOperating mode:", operating_mode)
-    my_print("\nReceived k1:", recv_k1)
-    my_print("\nReceived iv:", recv_iv)
+    if operating_mode == "CBC":
+        k1_decrypted = MyCrypto.cbc_decrypt([received_k1], k3, iv_k3)
+        iv_k1_decrypted = MyCrypto.cbc_decrypt([received_iv_k1], k3, iv_k3)
 
-    message = "K1 and IV received."
-    sock.sendall(message.encode())
+        #message = "[A] k1 and iv received."
+        #encrypted_message = MyCrypto.cbc_encrypt([message], k1_decrypted, iv_k1_decrypted)
+    else:
+        k1_decrypted = MyCrypto.cfb_decrypt([received_k1], k3, iv_k3)
+        iv_k1_decrypted = MyCrypto.cfb_decrypt([received_iv_k1], k3, iv_k3)
 
-    response = sock.recv(1024).decode()
-    my_print(response)
+        #message = "[A] k1 and iv received."
+        #encrypted_message = MyCrypto.cfb_encrypt([message], k1_decrypted, iv_k1_decrypted)
+
+    my_print("\nk1:", k1_decrypted)
+    my_print("\nk1_iv:", iv_k1_decrypted)
+
+    #sock.sendall(encrypted_message)
+    #response = sock.recv(256).decode()
+    #my_print(response)
 
     sock.close()
 

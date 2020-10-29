@@ -1,14 +1,24 @@
+import pickle
 import socket
 import sys
-import json
+from MyCrypto import MyCrypto
 
 
 def my_print(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def main():
+k3 = '3112938275822331'
+iv_k3 = b'8190271284791861'
 
+k2 = '5555666622221111'
+iv_k2 = b'1249097129147980'
+
+k1 = '1112223334445551'
+iv_k1 = b'3910571928794213'
+
+
+def main():
     # Creating TCP socket family:
     # Address Format Internet
     # Type: Socket Stream(sequenced, reliable, two-way connection-based byte streams over TCP)
@@ -32,55 +42,69 @@ def main():
             my_print('[Server] Connection from', client_address1)
             my_print('[Server] Connection from', client_address2)
 
-            k3 = "-"  # citita dintr un fisier?
-            operating_mode_A, operating_mode_B = "-", "-"
+            operating_mode_a, operating_mode_b, encrypted_k1, encrypted_iv_k1, encrypted_k2, encrypted_iv_k2 = "-", "-", "-", "-", "-", "-"
 
             choice = connection1.recv(256).decode()
 
-
             if choice == "0":
-                my_print("A => CBC")
-                my_print("B => CFB")
-                operating_mode_A = "CBC"
-                operating_mode_B = "CFB"
+                operating_mode_a = "CBC"
+                operating_mode_b = "CFB"
+
+                encrypted_k1 = MyCrypto.cbc_encrypt(k1, k3, iv_k3)[0]
+                encrypted_iv_k1 = MyCrypto.cbc_encrypt(iv_k1, k3, iv_k3)[0]
+
+                encrypted_k2 = MyCrypto.cfb_encrypt(k2, k3, iv_k3)[0]
+                encrypted_iv_k2 = MyCrypto.cfb_encrypt(iv_k2, k3, iv_k3)[0]
             elif choice == "1":
-                my_print("A => CFB")
-                my_print("B => CBC")
-                operating_mode_A = "CFB"
-                operating_mode_B = "CBC"
+                operating_mode_a = "CFB"
+                operating_mode_b = "CBC"
 
-            k1 = "CRIPTAT_K1_CRIPTAT"
-            iv = "CRIPTAT_IV_CRIPTAT"
-            k1_iv = {"k1": k1, "iv": iv}
-            json_k1_iv = json.dumps(k1_iv)
-            connection1.sendall(json_k1_iv.encode())
+                encrypted_k1 = MyCrypto.cfb_encrypt(k1, k3, iv_k3)[0]
+                encrypted_iv_k1 = MyCrypto.cfb_encrypt(iv_k1, k3, iv_k3)[0]
 
-            operating_mode = {"operating_mode": operating_mode_B}
-            json_operating_mode = json.dumps(operating_mode)
-            connection2.sendall(json_operating_mode.encode())
+                encrypted_k2 = MyCrypto.cbc_encrypt(k2, k3, iv_k3)[0]
+                encrypted_iv_k2 = MyCrypto.cbc_encrypt(iv_k2, k3, iv_k3)[0]
 
-            recv_message = connection2.recv(256)
-            my_print(recv_message.decode())
 
-            k2 = "CRIPTAT_K2_CRIPTAT"
-            iv = "CRIPTAT_IV_CRIPTAT"
-            k2_iv = {"k2": k2, "iv": iv}
-            json_k2_iv = json.dumps(k2_iv)
-            connection2.sendall(json_k2_iv.encode())
+            # sending operating mode, k1 and iv for A
+            response = pickle.dumps([operating_mode_a, encrypted_k1, encrypted_iv_k1])
+            connection1.sendall(response)
 
-            # le primesc si le afisez ( DAR TREBUIESC DECRIPTATE CU K1 si K2 )
-            my_print(connection1.recv(1024).decode())
-            my_print(connection2.recv(1024).decode())
+            # sending operating mode for B
+            response = pickle.dumps([operating_mode_b])
+            connection2.sendall(response)
 
+            # receiving confirmation message from B
+            received = connection2.recv(256)
+            my_print(received.decode())
+
+            # sending k2 and iv to B
+            response = pickle.dumps([encrypted_k2, encrypted_iv_k2])
+            connection2.sendall(response)
+
+            response_a = connection1.recv(256).decode()
+            response_b = connection2.recv(256).decode()
+
+            #decrypted_response_a, decrypted_response_b = '', ''
+
+            #if choice == "0":
+                #decrypted_response_a = MyCrypto.cbc_encrypt([response_a], k1, iv_k1)
+                #decrypted_response_b = MyCrypto.cfb_encrypt([response_b], k1, iv_k1)
+            #elif choice == "1":
+                #decrypted_response_a = MyCrypto.cfb_encrypt([response_a], k1, iv_k1)
+                #decrypted_response_b = MyCrypto.cbc_encrypt([response_b], k1, iv_k1)
+
+            #my_print(decrypted_response_a)
+            #my_print(decrypted_response_b)
+
+            my_print("Starting communication")
             connection1.sendall("Communication started!".encode())
             connection2.sendall("Communication started!".encode())
-
-
-
 
         finally:
             connection1.close()
             my_print('[Server] Connection ended')
+
 
 if __name__ == "__main__":
     main()
