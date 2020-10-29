@@ -45,25 +45,28 @@ def main():
     #my_print("\nReceived k2:", received_k2)
     #my_print("\nReceived iv:", received_k2_iv)
 
+    k2_decrypted, iv_k2_decrypted, encrypted_message = '', '', ''
+
     if received_operating_mode == "CBC":
         k2_decrypted = MyCrypto.cbc_decrypt([received_k2], k3, iv_k3)
         iv_k2_decrypted = MyCrypto.cbc_decrypt([received_k2_iv], k3, iv_k3)
 
-        #message = "[B] k2 and iv received."
-        #encrypted_message = MyCrypto.cbc_encrypt([message], k2_decrypted, iv_k2_decrypted)
-    else:
+        message = '[B] k1 and iv received.'
+        encrypted_message = MyCrypto.cbc_encrypt(message, k2_decrypted, iv_k2_decrypted)[0]
+    elif received_operating_mode == "CFB":
         k2_decrypted = MyCrypto.cfb_decrypt([received_k2], k3, iv_k3)
         iv_k2_decrypted = MyCrypto.cfb_decrypt([received_k2_iv], k3, iv_k3)
 
-        #message = "[B] k2 and iv received."
-        #encrypted_message = MyCrypto.cfb_encrypt([message], k2_decrypted, iv_k2_decrypted)
+        message = '[B] k1 and iv received.'
+        encrypted_message = MyCrypto.cfb_encrypt(message, k2_decrypted, iv_k2_decrypted)[0]
 
     my_print("\nk2:", k2_decrypted)
     my_print("\niv:", iv_k2_decrypted)
 
-    #sock.sendall(encrypted_message)
-    #response = sock.recv(256).decode()
-    #my_print(response)
+    message = pickle.dumps(encrypted_message)
+    sock.sendall(message)
+    response = sock.recv(1024).decode()
+    my_print(response)
 
     sock.close()
 

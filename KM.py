@@ -82,20 +82,30 @@ def main():
             response = pickle.dumps([encrypted_k2, encrypted_iv_k2])
             connection2.sendall(response)
 
-            response_a = connection1.recv(256).decode()
-            response_b = connection2.recv(256).decode()
+            response_a = connection1.recv(1024)
+            response_a_to_decrypt = pickle.loads(response_a)
+            response_b = connection2.recv(1024)
+            response_b_to_decrypt = pickle.loads(response_b)
 
-            #decrypted_response_a, decrypted_response_b = '', ''
+            # my_print(response_b_to_decrypt)
+            # my_print(response_a_to_decrypt)
 
-            #if choice == "0":
-                #decrypted_response_a = MyCrypto.cbc_encrypt([response_a], k1, iv_k1)
-                #decrypted_response_b = MyCrypto.cfb_encrypt([response_b], k1, iv_k1)
-            #elif choice == "1":
-                #decrypted_response_a = MyCrypto.cfb_encrypt([response_a], k1, iv_k1)
-                #decrypted_response_b = MyCrypto.cbc_encrypt([response_b], k1, iv_k1)
+            decrypted_response_a, decrypted_response_b = '', ''
 
-            #my_print(decrypted_response_a)
-            #my_print(decrypted_response_b)
+            # A => CBC
+            # B => CFB
+            if choice == "0":
+                decrypted_response_a = MyCrypto.cbc_decrypt([response_a_to_decrypt], k1, iv_k1)
+                decrypted_response_b = MyCrypto.cfb_decrypt([response_b_to_decrypt], k2, iv_k2)
+
+            # A => CFB
+            # B => CBC
+            elif choice == "1":
+                decrypted_response_a = MyCrypto.cfb_decrypt([response_a_to_decrypt], k1, iv_k1)
+                decrypted_response_b = MyCrypto.cbc_decrypt([response_b_to_decrypt], k2, iv_k2)
+
+            my_print(decrypted_response_a)
+            my_print(decrypted_response_b)
 
             my_print("Starting communication")
             connection1.sendall("Communication started!".encode())
