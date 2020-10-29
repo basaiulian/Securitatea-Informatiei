@@ -68,6 +68,29 @@ def main():
     response = sock.recv(1024).decode()
     my_print(response)
 
+    response = sock.recv(20480000)
+    received_message = pickle.loads(response)
+    # print(received_message[1])
+    decrypted_message_from_a = ''
+
+    if received_operating_mode == "CBC":
+        decrypted_message_from_a = MyCrypto.cbc_decrypt(received_message[1], k2_decrypted, iv_k2_decrypted)
+    elif received_operating_mode == "CFB":
+        decrypted_message_from_a = MyCrypto.cfb_decrypt(received_message[1], k2_decrypted, iv_k2_decrypted)
+
+    print("Message received from A: ")
+    print(decrypted_message_from_a)
+
+    message = "Message received."
+    message_to_send = ''
+    if received_operating_mode == "CBC":
+        encrypted_message = MyCrypto.cbc_encrypt(message, k2_decrypted, iv_k2_decrypted)[0]
+    elif received_operating_mode == "CFB":
+        encrypted_message = MyCrypto.cfb_encrypt(message, k2_decrypted, iv_k2_decrypted)[0]
+    my_print(encrypted_message)
+    message_to_send = pickle.dumps(encrypted_message)
+    sock.sendall(message_to_send)
+
     sock.close()
 
 

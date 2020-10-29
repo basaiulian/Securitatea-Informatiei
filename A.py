@@ -10,11 +10,13 @@ def my_print(*args, **kwargs):
 
 def read_file(filepath):
     file_handler = open(filepath, 'r')
+    string = ''
     while True:
         line = file_handler.readline()
         if not line:
             break
-        print(line)
+        string += line
+    return string
 
 
 def main():
@@ -69,6 +71,54 @@ def main():
     sock.sendall(message)
     response = sock.recv(1024).decode()
     my_print(response)
+
+    #                                                   secured communication
+
+    # reading file
+    file_content = read_file("A_file.txt")
+    #my_print("File content: ", file_content)
+
+    response = ''
+
+    # encrypting file content
+    if operating_mode == "CBC":
+        encrypted_message = MyCrypto.cbc_encrypt(file_content, k1_decrypted, iv_k1_decrypted)
+
+        blocks_number = str(len(encrypted_message))
+
+        encrypted_blocks_number = MyCrypto.cbc_encrypt(blocks_number, k1_decrypted, iv_k1_decrypted)
+
+        response = pickle.dumps([encrypted_blocks_number, encrypted_message])
+
+    elif operating_mode == "CFB":
+        encrypted_message = MyCrypto.cfb_encrypt(file_content, k1_decrypted, iv_k1_decrypted)
+
+        blocks_number = str(len(encrypted_message))
+
+        encrypted_blocks_number = MyCrypto.cfb_encrypt(blocks_number, k1_decrypted, iv_k1_decrypted)
+
+        response = pickle.dumps([encrypted_blocks_number, encrypted_message])
+
+    #my_print(encrypted_message)
+
+    # sending to server
+    sock.sendall(response)
+
+    received = sock.recv(1024)
+    encrypted_message = pickle.loads(received)
+    decrypted_message = ''
+
+    if operating_mode == "CBC":
+        decrypted_message = MyCrypto.cbc_decrypt(encrypted_message, k1_decrypted, iv_k1_decrypted)
+    elif operating_mode == "CFB":
+        decrypted_message = MyCrypto.cfb_decrypt(encrypted_message, k1_decrypted, iv_k1_decrypted)
+
+    my_print(decrypted_message)
+
+
+
+
+
 
     sock.close()
 

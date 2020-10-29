@@ -111,6 +111,45 @@ def main():
             connection1.sendall("Communication started!".encode())
             connection2.sendall("Communication started!".encode())
 
+            message_from_a_file = connection1.recv(1024000)
+            message_from_a_file = pickle.loads(message_from_a_file)
+
+            if choice == "0":
+                decrypted_blocks_number = MyCrypto.cbc_decrypt(message_from_a_file[0], k1, iv_k1)
+                decrypted_message = MyCrypto.cbc_decrypt(message_from_a_file[1], k1, iv_k1)
+
+                encrypted_message_for_b = MyCrypto.cfb_encrypt(decrypted_message, k2, iv_k2)
+                #print(encrypted_message_for_b)
+                response = pickle.dumps([decrypted_blocks_number, encrypted_message_for_b])
+            elif choice == "1":
+                decrypted_blocks_number = MyCrypto.cfb_decrypt(message_from_a_file[0], k1, iv_k1)
+                decrypted_message = MyCrypto.cfb_decrypt(message_from_a_file[1], k1, iv_k1)
+
+                encrypted_message_for_b = MyCrypto.cbc_encrypt(decrypted_message, k2, iv_k2)
+                #print(encrypted_message_for_b)
+                response = pickle.dumps([decrypted_blocks_number, encrypted_message_for_b])
+
+            #print("Decrypted from A: ", decrypted_message)
+
+            # sending to B
+            connection2.sendall(response)
+
+            # receiving response from B to be sent to A
+
+            response_b = connection2.recv(1024)
+            response_b_to_decrypt = pickle.loads(response_b)
+
+            if choice == "0":
+                decrypted_response_b = MyCrypto.cfb_decrypt([response_b_to_decrypt], k2, iv_k2)
+                encrypted_message_for_a = MyCrypto.cbc_encrypt(decrypted_response_b, k1, iv_k1)[0]
+            elif choice == "1":
+                decrypted_response_b = MyCrypto.cbc_decrypt([response_b_to_decrypt], k2, iv_k2)
+                encrypted_message_for_a = MyCrypto.cfb_encrypt(decrypted_response_b, k1, iv_k1)[0]
+
+            response = pickle.dumps([encrypted_message_for_a])
+            connection1.sendall(response)
+
+
         finally:
             connection1.close()
             my_print('[Server] Connection ended')

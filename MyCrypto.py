@@ -166,7 +166,7 @@ class MyCrypto:
             # else we should apply XOR operation between current block and last block
             if idx == 0:
                 if type(iv) == str:
-                    iv = bytes(iv.encode('uft8'))
+                    iv = bytes(iv.encode('utf8'))
                 aux = decrypter.encrypt(iv)
                 plain_text_block = MyCrypto.xor(aux, encrypted_block)
             else:
