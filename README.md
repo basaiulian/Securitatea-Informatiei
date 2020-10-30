@@ -1,4 +1,4 @@
-### Tema 1
+# Tema 1
 
 ## Introducere
 
@@ -11,7 +11,7 @@ In implementarea acestei infrastructuri am avut nevoie de urmatoarele librarii:
 **pickle** - pentru trimiterea datelor sub forma unui obiect
 
 ## Arhitectura aplicatiei
-1. **Alegerea modului de operare** de catre nodul **A**, urmand ca nodul **B** sa primeasca modul de operare ramas.
+1. **Alegerea modului de operare** de catre nodul **A**, urmand ca nodul **B** sa primeasca modul de operare ramas
 2. Se face schimbul de chei ( **A** primeste **Key1**, iar **B** primeste **Key2**
 3. **A** cripteaza continutul fisierului cu cheia **Key1** si il trimite catre **KM**
 4. **KM** decripteaza mesajul primit de la **A** cu cheia **Key1**, il cripteaza cu cheia **Key2** si il trimite catre **B**
@@ -31,5 +31,5 @@ atunci se aplica un padding.
 1. python KM.py
 2. python A.py
 3. python B.py
-4. introduceti **0** sau **1**, in functie de modul ales dintre cele doua afisate in terminal
+4. introduceti **0** sau **1** in terminalul lui **A** , in functie de modul ales dintre cele doua afisate.
 
