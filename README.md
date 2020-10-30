@@ -1,3 +1,3 @@
 ### Tema 1
 
-![image info]( architecture.PNG)
+![alt text](https://github.com/[basaiulian]/[securitatea_informatiei]/blob/[master]/architecture.jpg?raw=true)
