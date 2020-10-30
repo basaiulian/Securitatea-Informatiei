@@ -1,3 +1,3 @@
 ### Tema 1
 
-![image info](architecture.PNG)
+![image info]( architecture.PNG)
